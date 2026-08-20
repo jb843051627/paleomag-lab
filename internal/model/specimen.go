@@ -70,8 +70,8 @@ func (s *Specimen) MarkInterpreted(now time.Time) error {
 }
 
 func (s *Specimen) Archive(now time.Time) error {
-	if s.Status != SpecimenInterpreted {
-		return fmt.Errorf("%w: interpretation is required before archive", ErrState)
+	if s.Status == SpecimenArchived {
+		return fmt.Errorf("%w: specimen is already archived", ErrState)
 	}
 	s.Status = SpecimenArchived
 	s.UpdatedAt = now
