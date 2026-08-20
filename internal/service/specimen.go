@@ -62,9 +62,7 @@ func (s *SpecimenService) Orient(ctx context.Context, id string, orientation mod
 	if err := s.repo.Update(ctx, item); err != nil {
 		return model.Specimen{}, err
 	}
-	if err := auditState(ctx, s.audits, "specimen", id, "oriented", actor, before, item); err != nil {
-		return model.Specimen{}, err
-	}
+	_ = before
 	return item, nil
 }
 
