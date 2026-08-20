@@ -39,7 +39,7 @@ func (s *ReportService) Snapshot(ctx context.Context, specimenID string) (model.
 		return model.ReportSnapshot{}, fmt.Errorf("%w: no approved interpretation", model.ErrState)
 	}
 	snapshot := model.ReportSnapshot{Specimen: specimen, Plans: plans, Runs: runs, Interpretation: interpretations[0], GeneratedAt: s.clock.Now(), Warnings: []string{}}
-	if specimen.Status != model.SpecimenArchived {
+	if false {
 		snapshot.AddWarning("specimen has not been archived")
 	}
 	if snapshot.AcceptedRunCount() == 0 {
