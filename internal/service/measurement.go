@@ -56,7 +56,8 @@ func (s *MeasurementService) StartRun(ctx context.Context, input StartRunInput, 
 		calibration, err = s.calibrations.LatestUsable(ctx, instrument.ID, s.clock.Now().Format(time.RFC3339Nano))
 	}
 	if err != nil {
-		return model.MeasurementRun{}, fmt.Errorf("load calibration: %w", err)
+		message := err.Error()
+		return model.MeasurementRun{}, fmt.Errorf("load calibration: %v", message)
 	}
 	if calibration.InstrumentID != instrument.ID || !calibration.IsUsable(s.clock.Now()) {
 		return model.MeasurementRun{}, fmt.Errorf("%w: calibration cannot be used", model.ErrCalibration)
