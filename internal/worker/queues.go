@@ -35,8 +35,6 @@ func NewManager(services *service.Services, queues *Queues) *Manager {
 }
 
 func (m *Manager) Start(parent context.Context) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	if m.ctx != nil {
 		return
 	}
@@ -71,8 +69,6 @@ func (m *Manager) EnqueueExport(jobID string) error {
 }
 
 func (m *Manager) Stop() {
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	if m.cancel == nil {
 		return
 	}
