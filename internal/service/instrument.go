@@ -52,12 +52,15 @@ func (s *InstrumentService) BeginCalibration(ctx context.Context, instrumentID, 
 	if err != nil {
 		return model.CalibrationRun{}, err
 	}
-	if reference == "" {
-		return model.CalibrationRun{}, fmt.Errorf("%w: calibration reference is required", model.ErrInvalid)
-	}
 	before := instrument
 	if err := instrument.BeginCalibration(s.clock.Now()); err != nil {
 		return model.CalibrationRun{}, err
+	}
+	if err := s.repo.Update(ctx, instrument); err != nil {
+		return model.CalibrationRun{}, err
+	}
+	if reference == "" {
+		return model.CalibrationRun{}, fmt.Errorf("%w: calibration reference is required", model.ErrInvalid)
 	}
 	if err := s.repo.Update(ctx, instrument); err != nil {
 		return model.CalibrationRun{}, err
