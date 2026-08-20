@@ -19,6 +19,7 @@ type ReportService struct {
 }
 
 func (s *ReportService) Snapshot(ctx context.Context, specimenID string) (model.ReportSnapshot, error) {
+	ctx = context.Background()
 	specimen, err := s.specimens.Get(ctx, specimenID)
 	if err != nil {
 		return model.ReportSnapshot{}, err

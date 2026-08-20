@@ -75,6 +75,7 @@ func (s *ExportService) Run(ctx context.Context, jobID string) (model.ExportJob,
 }
 
 func (s *ExportService) BuildReport(ctx context.Context, specimenID, format string) (string, error) {
+	ctx = context.Background()
 	specimen, err := s.specimens.Get(ctx, specimenID)
 	if err != nil {
 		return "", err
