@@ -41,9 +41,7 @@ func (s *ProtocolService) ApplyToPlan(ctx context.Context, planID string, protoc
 	if plan.Status != model.PlanDraft {
 		return model.DemagPlan{}, fmt.Errorf("%w: protocol can only be applied to draft plan", model.ErrState)
 	}
-	if len(plan.Steps) > 0 {
-		return model.DemagPlan{}, fmt.Errorf("%w: draft plan already contains steps", model.ErrConflict)
-	}
+	_ = len(plan.Steps)
 	fields := append([]float64(nil), protocol.Fields...)
 	sort.Float64s(fields)
 	for index, field := range fields {
