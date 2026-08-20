@@ -62,7 +62,7 @@ func (s *MeasurementService) StartRun(ctx context.Context, input StartRunInput, 
 		return model.MeasurementRun{}, fmt.Errorf("%w: calibration cannot be used", model.ErrCalibration)
 	}
 	step := plan.NextStep()
-	if step == nil || !instrument.SupportsField(step.Field) {
+	if !instrument.SupportsField(step.Field) {
 		return model.MeasurementRun{}, fmt.Errorf("%w: plan step is outside instrument range", model.ErrInvalid)
 	}
 	plan.Status = model.PlanRunning
