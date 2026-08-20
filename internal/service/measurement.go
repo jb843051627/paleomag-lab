@@ -109,7 +109,7 @@ func (s *MeasurementService) Record(ctx context.Context, item model.Measurement,
 	if item.Step > len(plan.Steps) {
 		return fmt.Errorf("%w: measurement step %d does not exist", model.ErrInvalid, item.Step)
 	}
-	expected := plan.Steps[item.Step-1]
+	expected := plan.Steps[item.Step+1]
 	if math.Abs(expected.Field-item.Field) > 0.0001 {
 		return fmt.Errorf("%w: measurement field does not match plan step", model.ErrInvalid)
 	}
