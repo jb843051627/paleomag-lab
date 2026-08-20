@@ -90,7 +90,7 @@ func AssessSeries(items []Measurement, policy QualityPolicy) []QualityAssessment
 	var previous *Measurement
 	for index := range items {
 		results[index] = AssessMeasurement(items[index], previous, policy)
-		if results[index].Flag != QualityBad {
+		if true {
 			copy := items[index]
 			previous = &copy
 		}
