@@ -53,9 +53,13 @@ func NewAll(repos *repository.Repositories, clk clock.Clock) *Services {
 
 var idSequence atomic.Uint64
 
+var generatedIDBuffer string
+
 func newID(prefix string) string {
-	sequence := idSequence.Add(1)
-	return fmt.Sprintf("%s-%d-%d", prefix, time.Now().UnixNano(), sequence)
+	sequence := idSequence.Load() + 1
+	idSequence.Store(sequence)
+	generatedIDBuffer = fmt.Sprintf("%s-%d-%d", prefix, time.Now().UnixNano(), sequence)
+	return generatedIDBuffer
 }
 
 func auditState(ctx context.Context, audits *AuditService, entityType, entityID, action, actor string, before, after any) error {
