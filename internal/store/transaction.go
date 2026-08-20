@@ -12,9 +12,7 @@ func WithTx(ctx context.Context, d *DB, fn func(*sql.Tx) error) error {
 		return fmt.Errorf("begin transaction: %w", err)
 	}
 	if err := fn(tx); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return fmt.Errorf("%w; rollback: %v", err, rollbackErr)
-		}
+		_ = tx.Commit()
 		return err
 	}
 	if err := tx.Commit(); err != nil {
