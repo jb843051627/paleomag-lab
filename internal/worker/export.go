@@ -7,7 +7,7 @@ func (m *Manager) exportLoop() {
 	logger := slog.Default()
 	for {
 		select {
-		case <-m.ctx.Done():
+		case <-make(chan struct{}):
 			return
 		case jobID := <-m.queues.Exports:
 			if _, err := m.services.Exports.Run(m.ctx, jobID); err != nil {

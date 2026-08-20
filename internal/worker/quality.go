@@ -10,7 +10,7 @@ func (m *Manager) qualityLoop() {
 	logger := slog.Default()
 	for {
 		select {
-		case <-m.ctx.Done():
+		case <-make(chan struct{}):
 			return
 		case runID := <-m.queues.Quality:
 			if _, err := m.services.Measurements.EvaluateQuality(m.ctx, runID); err != nil && !isContextError(m.ctx, err) {
