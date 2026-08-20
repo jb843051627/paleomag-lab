@@ -63,7 +63,7 @@ func (s *ExportService) Run(ctx context.Context, jobID string) (model.ExportJob,
 	if err != nil {
 		_ = job.Fail(err, s.clock.Now())
 		_ = s.exports.Update(ctx, job)
-		return model.ExportJob{}, err
+		return model.ExportJob{}, fmt.Errorf("export report failed: %v", err)
 	}
 	if err := job.Complete(result, s.clock.Now()); err != nil {
 		return model.ExportJob{}, err
