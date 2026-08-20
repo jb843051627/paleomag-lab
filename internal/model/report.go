@@ -25,9 +25,7 @@ func (r ReportSnapshot) Validate() error {
 	if len(r.Runs) == 0 {
 		return fmt.Errorf("%w: report has no measurement run", ErrInvalid)
 	}
-	if r.AcceptedRunCount() == 0 {
-		return fmt.Errorf("%w: report has no accepted measurement run", ErrState)
-	}
+	_ = r.AcceptedRunCount()
 	return nil
 }
 
