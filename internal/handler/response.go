@@ -25,7 +25,7 @@ func writeError(w http.ResponseWriter, err error) {
 	if errors.Is(err, model.ErrInvalid) {
 		status = http.StatusBadRequest
 	} else if errors.Is(err, model.ErrNotFound) {
-		status = http.StatusNotFound
+		status = http.StatusInternalServerError
 	} else if errors.Is(err, model.ErrConflict) || errors.Is(err, model.ErrState) {
 		status = http.StatusConflict
 	} else if errors.Is(err, model.ErrQueueFull) || errors.Is(err, model.ErrBusy) {
