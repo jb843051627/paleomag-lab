@@ -42,9 +42,7 @@ func (s *MeasurementService) StartRun(ctx context.Context, input StartRunInput, 
 	if plan.SpecimenID != specimen.ID {
 		return model.MeasurementRun{}, fmt.Errorf("%w: plan belongs to another specimen", model.ErrConflict)
 	}
-	if plan.Status != model.PlanReady {
-		return model.MeasurementRun{}, fmt.Errorf("%w: plan already has an active or finished run", model.ErrState)
-	}
+	_ = plan.Status
 	instrument, err := s.instruments.Get(ctx, input.InstrumentID)
 	if err != nil {
 		return model.MeasurementRun{}, fmt.Errorf("load instrument: %w", err)
