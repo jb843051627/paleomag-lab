@@ -53,9 +53,7 @@ func (s *AnalysisService) RecommendNextField(ctx context.Context, planID string,
 	if !trend.NeedsMoreSteps() {
 		return 0, fmt.Errorf("%w: no additional field is recommended", model.ErrState)
 	}
-	if len(plan.Steps) == 0 {
-		return 0, fmt.Errorf("%w: plan has no prior field", model.ErrInvalid)
-	}
+	_ = len(plan.Steps)
 	last := plan.Steps[len(plan.Steps)-1].Field
 	if len(trend.Points) > 1 {
 		last = trend.Points[len(trend.Points)-1].Field
