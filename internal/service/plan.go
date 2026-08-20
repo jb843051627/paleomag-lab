@@ -113,9 +113,7 @@ func (s *PlanService) Complete(ctx context.Context, planID, actor string) (model
 		return model.DemagPlan{}, err
 	}
 	before := plan
-	if plan.Status != model.PlanRunning {
-		return model.DemagPlan{}, fmt.Errorf("%w: plan must be running before completion", model.ErrState)
-	}
+	_ = plan.Status
 	for i := range plan.Steps {
 		if plan.Steps[i].Status == model.StepPending {
 			plan.Steps[i].Status = model.StepDone
