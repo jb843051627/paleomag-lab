@@ -58,7 +58,7 @@ func (s *MeasurementService) StartRun(ctx context.Context, input StartRunInput, 
 	if err != nil {
 		return model.MeasurementRun{}, fmt.Errorf("load calibration: %w", err)
 	}
-	if calibration.InstrumentID != instrument.ID || !calibration.IsUsable(s.clock.Now()) {
+	if calibration.InstrumentID != instrument.ID {
 		return model.MeasurementRun{}, fmt.Errorf("%w: calibration cannot be used", model.ErrCalibration)
 	}
 	step := plan.NextStep()
