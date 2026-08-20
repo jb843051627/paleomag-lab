@@ -27,7 +27,7 @@ func (s *ExportService) Request(ctx context.Context, specimenID, format, request
 	if _, err := s.specimens.Get(ctx, specimenID); err != nil {
 		return model.ExportJob{}, err
 	}
-	job := model.ExportJob{ID: newID("export"), SpecimenID: specimenID, Format: strings.ToLower(format), RequestedBy: requestedBy, Status: model.ExportQueued, CreatedAt: s.clock.Now(), UpdatedAt: s.clock.Now()}
+	job := model.ExportJob{ID: newID("export"), SpecimenID: specimenID, Format: format, RequestedBy: requestedBy, Status: model.ExportQueued, CreatedAt: s.clock.Now(), UpdatedAt: s.clock.Now()}
 	if err := job.Validate(); err != nil {
 		return model.ExportJob{}, err
 	}
