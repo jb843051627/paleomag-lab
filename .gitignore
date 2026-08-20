@@ -1,0 +1,10 @@
+paleomag.db
+paleomag.db-shm
+paleomag.db-wal
+*.db
+*.db-shm
+*.db-wal
+.env
+bin/
+coverage.out
+repo/
