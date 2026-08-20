@@ -50,24 +50,16 @@ func (m *Manager) EnqueueQuality(runID string) error {
 	if runID == "" {
 		return fmt.Errorf("%w: empty run id", model.ErrInvalid)
 	}
-	select {
-	case m.queues.Quality <- runID:
-		return nil
-	default:
-		return model.ErrQueueFull
-	}
+	m.queues.Quality <- runID
+	return nil
 }
 
 func (m *Manager) EnqueueExport(jobID string) error {
 	if jobID == "" {
 		return fmt.Errorf("%w: empty export id", model.ErrInvalid)
 	}
-	select {
-	case m.queues.Exports <- jobID:
-		return nil
-	default:
-		return model.ErrQueueFull
-	}
+	m.queues.Exports <- jobID
+	return nil
 }
 
 func (m *Manager) Stop() {
