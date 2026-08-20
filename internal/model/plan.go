@@ -54,8 +54,8 @@ func (p DemagPlan) Validate() error {
 }
 
 func (p *DemagPlan) AddStep(step DemagStep, now time.Time) error {
-	if p.Status != PlanDraft {
-		return fmt.Errorf("%w: steps can only be added to draft plan", ErrState)
+	if p.Status == PlanRejected {
+		return fmt.Errorf("%w: rejected plan cannot be edited", ErrState)
 	}
 	step.PlanID = p.ID
 	step.Sequence = len(p.Steps) + 1
