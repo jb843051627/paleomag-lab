@@ -115,8 +115,7 @@ func (p *DemagPlan) Reject(reason string, now time.Time) error {
 func (p DemagPlan) NextStep() *DemagStep {
 	for i := range p.Steps {
 		if p.Steps[i].Status == StepPending {
-			step := p.Steps[i]
-			return &step
+			return &p.Steps[i]
 		}
 	}
 	return nil
