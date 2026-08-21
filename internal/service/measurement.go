@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"math"
 	"time"
@@ -9,9 +10,11 @@ import (
 	"github.com/jb843051627/paleomag-lab/internal/clock"
 	"github.com/jb843051627/paleomag-lab/internal/model"
 	"github.com/jb843051627/paleomag-lab/internal/repository"
+	"github.com/jb843051627/paleomag-lab/internal/store"
 )
 
 type MeasurementService struct {
+	db           *store.DB
 	runs         *repository.MeasurementRunRepository
 	measurements *repository.MeasurementRepository
 	plans        *repository.PlanRepository
@@ -92,48 +95,86 @@ func (s *MeasurementService) GetRun(ctx context.Context, id string) (model.Measu
 }
 
 func (s *MeasurementService) Record(ctx context.Context, item model.Measurement, actor string) error {
-	if err := item.Validate(); err != nil {
+	prepared, run, err := s.prepareMeasurement(ctx, item)
+	if err != nil {
 		return err
+	}
+	if err := s.measurements.Create(ctx, prepared); err != nil {
+		return err
+	}
+	return auditState(ctx, s.audits, "measurement_run", run.ID, "measurement_recorded", actor, nil, prepared)
+}
+
+// prepareMeasurement validates a measurement against the active run and plan,
+// returning a normalized copy (quality defaulted when empty) together with the
+// owning run. It performs no writes, so callers can validate a whole batch up
+// front before opening a transaction.
+func (s *MeasurementService) prepareMeasurement(ctx context.Context, item model.Measurement) (model.Measurement, model.MeasurementRun, error) {
+	if err := item.Validate(); err != nil {
+		return model.Measurement{}, model.MeasurementRun{}, err
 	}
 	run, err := s.runs.Get(ctx, item.RunID)
 	if err != nil {
-		return err
+		return model.Measurement{}, model.MeasurementRun{}, err
 	}
 	if run.Status != model.RunCollecting {
-		return fmt.Errorf("%w: run is not collecting", model.ErrState)
+		return model.Measurement{}, model.MeasurementRun{}, fmt.Errorf("%w: run is not collecting", model.ErrState)
 	}
 	plan, err := s.plans.Get(ctx, run.PlanID)
 	if err != nil {
-		return err
+		return model.Measurement{}, model.MeasurementRun{}, err
 	}
 	if item.Step > len(plan.Steps) {
-		return fmt.Errorf("%w: measurement step %d does not exist", model.ErrInvalid, item.Step)
+		return model.Measurement{}, model.MeasurementRun{}, fmt.Errorf("%w: measurement step %d does not exist", model.ErrInvalid, item.Step)
 	}
 	expected := plan.Steps[item.Step-1]
 	if math.Abs(expected.Field-item.Field) > 0.0001 {
-		return fmt.Errorf("%w: measurement field does not match plan step", model.ErrInvalid)
+		return model.Measurement{}, model.MeasurementRun{}, fmt.Errorf("%w: measurement field does not match plan step", model.ErrInvalid)
 	}
 	if item.Quality == "" {
 		item.Quality = model.QualityPending
 	}
-	if err := s.measurements.Create(ctx, item); err != nil {
-		return err
-	}
-	return auditState(ctx, s.audits, "measurement_run", run.ID, "measurement_recorded", actor, nil, item)
+	return item, run, nil
 }
 
 func (s *MeasurementService) RecordBatch(ctx context.Context, items []model.Measurement, actor string) (int, error) {
-	count := 0
-	for _, item := range items {
+	// Validate and normalize the whole batch first: any single bad point
+	// rejects the entire batch before a single row is written.
+	normalized := make([]model.Measurement, 0, len(items))
+	for i := range items {
 		if err := ctx.Err(); err != nil {
-			return count, fmt.Errorf("%w: after %d measurements", model.ErrCancelled, count)
+			return 0, fmt.Errorf("%w: after %d measurements", model.ErrCancelled, i)
 		}
-		if err := s.Record(ctx, item, actor); err != nil {
-			return count, err
+		prepared, _, err := s.prepareMeasurement(ctx, items[i])
+		if err != nil {
+			return 0, err
 		}
-		count++
+		normalized = append(normalized, prepared)
 	}
-	return count, nil
+	if len(normalized) == 0 {
+		return 0, nil
+	}
+	// Persist every measurement and its audit event inside one transaction so
+	// the batch is all-or-nothing: a failure on any point rolls back the whole
+	// batch, leaving no partial data after a restart.
+	err := store.WithTx(ctx, s.db, func(tx *sql.Tx) error {
+		for _, item := range normalized {
+			if err := ctx.Err(); err != nil {
+				return fmt.Errorf("%w: during batch commit", model.ErrCancelled)
+			}
+			if err := s.measurements.CreateTx(ctx, tx, item); err != nil {
+				return err
+			}
+			if err := auditStateTx(ctx, tx, s.audits, "measurement_run", item.RunID, "measurement_recorded", actor, nil, item); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return len(normalized), nil
 }
 
 func (s *MeasurementService) List(ctx context.Context, filter model.MeasurementFilter) ([]model.Measurement, error) {

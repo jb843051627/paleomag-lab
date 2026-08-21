@@ -20,6 +20,15 @@ func (r *AuditRepository) Create(ctx context.Context, item model.AuditEvent) err
 	return nil
 }
 
+func (r *AuditRepository) CreateTx(ctx context.Context, tx *sql.Tx, item model.AuditEvent) error {
+	_, err := tx.ExecContext(ctx, `INSERT INTO audit_events(id, entity_type, entity_id, action, actor, before_json, after_json, created_at) VALUES(?,?,?,?,?,?,?,?)`,
+		item.ID, item.EntityType, item.EntityID, item.Action, item.Actor, item.Before, item.After, timeText(item.CreatedAt))
+	if err != nil {
+		return fmt.Errorf("create audit event: %w", err)
+	}
+	return nil
+}
+
 func (r *AuditRepository) List(ctx context.Context, filter model.AuditFilter) ([]model.AuditEvent, error) {
 	limit := filter.Limit
 	if limit <= 0 || limit > 500 {

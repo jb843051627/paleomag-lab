@@ -5,6 +5,7 @@ import (
 )
 
 type Repositories struct {
+	DB              *store.DB
 	Specimens       *SpecimenRepository
 	Plans           *PlanRepository
 	Instruments     *InstrumentRepository
@@ -22,6 +23,7 @@ type Repositories struct {
 
 func NewAll(db *store.DB) *Repositories {
 	return &Repositories{
+		DB:              db,
 		Specimens:       &SpecimenRepository{db: db.SQL},
 		Plans:           &PlanRepository{db: db.SQL},
 		Instruments:     &InstrumentRepository{db: db.SQL},

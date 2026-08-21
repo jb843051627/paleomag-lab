@@ -20,6 +20,15 @@ func (r *MeasurementRepository) Create(ctx context.Context, item model.Measureme
 	return nil
 }
 
+func (r *MeasurementRepository) CreateTx(ctx context.Context, tx *sql.Tx, item model.Measurement) error {
+	_, err := tx.ExecContext(ctx, `INSERT INTO measurements(id, run_id, step_no, field, x, y, z, intensity, quality, measured_at) VALUES(?,?,?,?,?,?,?,?,?,?)`,
+		item.ID, item.RunID, item.Step, item.Field, item.X, item.Y, item.Z, item.Intensity, item.Quality, timeText(item.MeasuredAt))
+	if err != nil {
+		return fmt.Errorf("create measurement: %w", err)
+	}
+	return nil
+}
+
 func (r *MeasurementRepository) Get(ctx context.Context, id string) (model.Measurement, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT id, run_id, step_no, field, x, y, z, intensity, quality, measured_at FROM measurements WHERE id=?`, id)
 	return scanMeasurement(row)
