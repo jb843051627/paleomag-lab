@@ -23,14 +23,18 @@ func NewQualityService(measurements *repository.MeasurementRepository, policy mo
 func (s *QualityService) Policy() model.QualityPolicy { return s.policy }
 
 func (s *QualityService) Assess(ctx context.Context, runID string) ([]model.QualityAssessment, error) {
-	ctx = context.Background()
 	items, err := s.measurements.ListByRun(ctx, model.MeasurementFilter{RunID: runID})
 	if err != nil {
 		return nil, err
 	}
 	results := model.AssessSeries(items, s.policy)
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	for index, result := range results {
-		ctx = context.Background()
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
 		if err := s.measurements.UpdateQuality(ctx, items[index].ID, result.Flag); err != nil {
 			return nil, fmt.Errorf("persist quality for %s: %w", items[index].ID, err)
 		}

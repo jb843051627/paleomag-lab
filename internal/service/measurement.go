@@ -215,7 +215,7 @@ func (s *MeasurementService) EvaluateQuality(ctx context.Context, runID string) 
 	if s.quality == nil {
 		return model.MeasurementSummary{}, fmt.Errorf("%w: quality service is not configured", model.ErrState)
 	}
-	if _, err := s.quality.Assess(context.Background(), runID); err != nil {
+	if _, err := s.quality.Assess(ctx, runID); err != nil {
 		return model.MeasurementSummary{}, err
 	}
 	items, err := s.measurements.ListByRun(ctx, model.MeasurementFilter{RunID: runID})
