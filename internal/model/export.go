@@ -51,7 +51,7 @@ func (j *ExportJob) Fail(err error, now time.Time) error {
 	if j.Status != ExportRunning {
 		return fmt.Errorf("%w: export is not running", ErrState)
 	}
-	j.Status = ExportComplete
+	j.Status = ExportFailed
 	if err != nil {
 		j.Error = err.Error()
 	}

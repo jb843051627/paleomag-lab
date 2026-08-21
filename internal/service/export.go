@@ -61,6 +61,12 @@ func (s *ExportService) Run(ctx context.Context, jobID string) (model.ExportJob,
 	}
 	result, err := s.BuildReport(ctx, job.SpecimenID, job.Format)
 	if err != nil {
+		if failErr := job.Fail(err, s.clock.Now()); failErr != nil {
+			return model.ExportJob{}, fmt.Errorf("%w; export fail transition: %v", err, failErr)
+		}
+		if updateErr := s.exports.Update(ctx, job); updateErr != nil {
+			return model.ExportJob{}, fmt.Errorf("%w; export fail persist: %v", err, updateErr)
+		}
 		return model.ExportJob{}, err
 	}
 	if err := job.Complete(result, s.clock.Now()); err != nil {
