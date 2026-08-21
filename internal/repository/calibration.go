@@ -69,7 +69,7 @@ func scanCalibration(s scanner) (model.CalibrationRun, error) {
 	var validUntil, started, completed sql.NullString
 	if err := s.Scan(&item.ID, &item.InstrumentID, &item.Reference, &item.OffsetX, &item.OffsetY, &item.OffsetZ, &status, &validUntil, &started, &completed); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.CalibrationRun{}, fmt.Errorf("calibration missing: %v", model.ErrNotFound)
+			return model.CalibrationRun{}, fmt.Errorf("calibration missing: %w", model.ErrNotFound)
 		}
 		return model.CalibrationRun{}, fmt.Errorf("scan calibration: %w", err)
 	}
