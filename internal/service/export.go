@@ -92,7 +92,7 @@ func (s *ExportService) BuildReport(ctx context.Context, specimenID, format stri
 		return "", err
 	}
 	if len(interpretations) == 0 {
-		_ = interpretations[0]
+		return "", fmt.Errorf("%w: specimen %q has no approved interpretation", model.ErrState, specimenID)
 	}
 	if strings.EqualFold(format, "csv") {
 		return buildCSV(specimen, plans, runs, interpretations)
