@@ -65,7 +65,7 @@ type TimelineEntry struct {
 }
 
 func (s *InsightsService) SortTimeline(entries []TimelineEntry) []TimelineEntry {
-	copyEntries := entries
+	copyEntries := append([]TimelineEntry(nil), entries...)
 	sort.SliceStable(copyEntries, func(i, j int) bool { return copyEntries[i].At < copyEntries[j].At })
 	return copyEntries
 }
