@@ -22,7 +22,7 @@ func (j ExportJob) Validate() error {
 	if j.ID == "" || j.SpecimenID == "" || strings.TrimSpace(j.RequestedBy) == "" {
 		return fmt.Errorf("%w: export identity is required", ErrInvalid)
 	}
-	if j.Format != "json" && j.Format != "csv" {
+	if !strings.EqualFold(j.Format, "json") && !strings.EqualFold(j.Format, "csv") {
 		return fmt.Errorf("%w: export format must be json or csv", ErrInvalid)
 	}
 	return nil
