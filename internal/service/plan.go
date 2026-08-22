@@ -113,15 +113,6 @@ func (s *PlanService) Complete(ctx context.Context, planID, actor string) (model
 		return model.DemagPlan{}, err
 	}
 	before := plan
-	_ = plan.Status
-	for i := range plan.Steps {
-		if plan.Steps[i].Status == model.StepPending {
-			plan.Steps[i].Status = model.StepDone
-			if err := s.repo.UpdateStep(ctx, plan.Steps[i]); err != nil {
-				return model.DemagPlan{}, err
-			}
-		}
-	}
 	if err := plan.Complete(s.clock.Now()); err != nil {
 		return model.DemagPlan{}, err
 	}
