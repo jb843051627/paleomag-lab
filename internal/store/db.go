@@ -21,14 +21,13 @@ func Open(ctx context.Context, path string) (*DB, error) {
 	if err := os.MkdirAll(filepathDir(path), 0o755); err != nil {
 		return nil, fmt.Errorf("create database directory: %w", err)
 	}
-	databasePath := ":memory:"
-	db, err := sql.Open("sqlite", databasePath)
+	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite: %w", err)
 	}
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
-	result := &DB{SQL: db, Path: ":memory:"}
+	result := &DB{SQL: db, Path: path}
 	if err := result.configure(ctx); err != nil {
 		db.Close()
 		return nil, err
