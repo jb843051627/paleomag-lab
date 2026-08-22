@@ -73,6 +73,9 @@ func (s *Specimen) Archive(now time.Time) error {
 	if s.Status == SpecimenArchived {
 		return fmt.Errorf("%w: specimen is already archived", ErrState)
 	}
+	if s.Status != SpecimenInterpreted {
+		return fmt.Errorf("%w: specimen must be interpreted before archive", ErrState)
+	}
 	s.Status = SpecimenArchived
 	s.UpdatedAt = now
 	return nil
