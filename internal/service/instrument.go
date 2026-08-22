@@ -52,6 +52,9 @@ func (s *InstrumentService) BeginCalibration(ctx context.Context, instrumentID, 
 	if err != nil {
 		return model.CalibrationRun{}, err
 	}
+	if reference == "" {
+		return model.CalibrationRun{}, fmt.Errorf("%w: calibration reference is required", model.ErrInvalid)
+	}
 	before := instrument
 	if err := instrument.BeginCalibration(s.clock.Now()); err != nil {
 		return model.CalibrationRun{}, err
@@ -59,20 +62,23 @@ func (s *InstrumentService) BeginCalibration(ctx context.Context, instrumentID, 
 	if err := s.repo.Update(ctx, instrument); err != nil {
 		return model.CalibrationRun{}, err
 	}
-	if reference == "" {
-		return model.CalibrationRun{}, fmt.Errorf("%w: calibration reference is required", model.ErrInvalid)
-	}
-	if err := s.repo.Update(ctx, instrument); err != nil {
-		return model.CalibrationRun{}, err
-	}
 	item := model.CalibrationRun{ID: newID("cal"), InstrumentID: instrumentID, Reference: reference, Status: model.CalibrationPending, StartedAt: s.clock.Now(), ValidUntil: s.clock.Now().Add(24 * time.Hour)}
 	if err := s.calibrations.Create(ctx, item); err != nil {
+		s.revertCalibration(ctx, &instrument)
 		return model.CalibrationRun{}, err
 	}
 	if err := auditState(ctx, s.audits, "instrument", instrumentID, "calibration_started", actor, before, instrument); err != nil {
+		s.revertCalibration(ctx, &instrument)
 		return model.CalibrationRun{}, err
 	}
 	return item, nil
+}
+
+// revertCalibration 将仪器从 calibrating 回退为 ready，避免校准流程在状态变更后失败导致仪器被锁死。
+func (s *InstrumentService) revertCalibration(ctx context.Context, instrument *model.Instrument) {
+	if err := instrument.FinishCalibration(false, s.clock.Now()); err == nil {
+		_ = s.repo.Update(ctx, *instrument)
+	}
 }
 
 func (s *InstrumentService) CompleteCalibration(ctx context.Context, calibrationID string, valid bool, offsets [3]float64, actor string) (model.CalibrationRun, error) {
